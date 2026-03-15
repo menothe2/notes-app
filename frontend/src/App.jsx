@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import NoteList from './components/NoteList'
 import NoteForm from './components/NoteForm'
 
-const API = '/api/notes'
+const API = `${import.meta.env.VITE_API_URL || ''}/api/notes`
 
 export default function App() {
   const [notes, setNotes] = useState([])
@@ -10,6 +10,11 @@ export default function App() {
   const [showForm, setShowForm] = useState(false)
   const [sortByPriority, setSortByPriority] = useState(false)
   const [error, setError] = useState(null)
+  const [lightMode, setLightMode] = useState(false)
+
+  useEffect(() => {
+    document.body.classList.toggle('light', lightMode)
+  }, [lightMode])
 
   const fetchNotes = async () => {
     try {
@@ -78,6 +83,9 @@ export default function App() {
           </label>
           <button className="btn-primary" onClick={() => { setEditingNote(null); setShowForm(true) }}>
             + New Note
+          </button>
+          <button className="btn-theme" onClick={() => setLightMode(m => !m)} title="Toggle theme">
+            {lightMode ? '🌙' : '☀️'}
           </button>
         </div>
       </header>
