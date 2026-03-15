@@ -22,9 +22,8 @@ SSH="ssh -i $EC2_KEY_PATH -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP"
 SCP="scp -i $EC2_KEY_PATH -o StrictHostKeyChecking=no"
 
 echo "==> [1/3] Building JAR..."
-JAVA_HOME_LOCAL=~/java/jdk-17.0.10+7/Contents/Home
-export PATH=$JAVA_HOME_LOCAL/bin:~/java/apache-maven-3.9.6/bin:$PATH
-export JAVA_HOME=$JAVA_HOME_LOCAL
+export JAVA_HOME=/opt/homebrew/opt/openjdk@17
+export PATH=$JAVA_HOME/bin:/opt/homebrew/bin:$PATH
 cd "$ROOT_DIR/backend"
 mvn clean package -DskipTests -q
 JAR=$(ls target/*.jar | head -1)

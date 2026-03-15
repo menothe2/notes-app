@@ -19,7 +19,7 @@ done
 
 echo "==> [1/3] Building React app..."
 cd "$ROOT_DIR/frontend"
-VITE_API_URL="http://$EC2_PUBLIC_IP:8080" npm run build
+VITE_API_URL="" npm run build
 
 echo "==> [2/3] Syncing to S3..."
 aws s3 sync dist/ "s3://$S3_BUCKET" \
