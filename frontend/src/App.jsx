@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import NoteList from './components/NoteList'
 import NoteForm from './components/NoteForm'
+import LoginPage from './components/LoginPage'
 
 const API = `${import.meta.env.VITE_API_URL || ''}/api/notes`
 
 export default function App() {
+  const [token, setToken] = useState(() => localStorage.getItem('token'))
+  const [userEmail, setUserEmail] = useState(() => localStorage.getItem('userEmail'))
   const [notes, setNotes] = useState([])
   const [editingNote, setEditingNote] = useState(null)
   const [showForm, setShowForm] = useState(false)
@@ -16,10 +19,31 @@ export default function App() {
     document.body.classList.toggle('light', lightMode)
   }, [lightMode])
 
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  }
+
+  const handleLogin = (newToken, email) => {
+    localStorage.setItem('token', newToken)
+    localStorage.setItem('userEmail', email)
+    setToken(newToken)
+    setUserEmail(email)
+  }
+
+  const handleSignOut = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('userEmail')
+    setToken(null)
+    setUserEmail(null)
+    setNotes([])
+  }
+
   const fetchNotes = async () => {
     try {
       const url = sortByPriority ? `${API}?sort=priority` : API
-      const res = await fetch(url)
+      const res = await fetch(url, { headers: authHeaders })
+      if (res.status === 401) { handleSignOut(); return }
       if (!res.ok) throw new Error('Failed to fetch notes')
       setNotes(await res.json())
       setError(null)
@@ -28,7 +52,7 @@ export default function App() {
     }
   }
 
-  useEffect(() => { fetchNotes() }, [sortByPriority])
+  useEffect(() => { if (token) fetchNotes() }, [sortByPriority, token])
 
   const handleSave = async (noteData) => {
     try {
@@ -36,9 +60,10 @@ export default function App() {
       const url = editingNote ? `${API}/${editingNote.id}` : API
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify(noteData)
       })
+      if (res.status === 401) { handleSignOut(); return }
       if (!res.ok) throw new Error('Failed to save')
       setShowForm(false)
       setEditingNote(null)
@@ -51,21 +76,19 @@ export default function App() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this note?')) return
     try {
-      await fetch(`${API}/${id}`, { method: 'DELETE' })
+      const res = await fetch(`${API}/${id}`, { method: 'DELETE', headers: authHeaders })
+      if (res.status === 401) { handleSignOut(); return }
       fetchNotes()
     } catch (e) {
       setError('Failed to delete note.')
     }
   }
 
-  const handleEdit = (note) => {
-    setEditingNote(note)
-    setShowForm(true)
-  }
+  const handleEdit = (note) => { setEditingNote(note); setShowForm(true) }
+  const handleCancel = () => { setShowForm(false); setEditingNote(null) }
 
-  const handleCancel = () => {
-    setShowForm(false)
-    setEditingNote(null)
+  if (!token) {
+    return <LoginPage onLogin={handleLogin} />
   }
 
   return (
@@ -87,6 +110,10 @@ export default function App() {
           <button className="btn-theme" onClick={() => setLightMode(m => !m)} title="Toggle theme">
             {lightMode ? '🌙' : '☀️'}
           </button>
+          <div className="user-menu">
+            <span className="user-email">{userEmail}</span>
+            <button className="btn-signout" onClick={handleSignOut}>Sign out</button>
+          </div>
         </div>
       </header>
 
@@ -95,11 +122,7 @@ export default function App() {
       {showForm && (
         <div className="modal-overlay" onClick={handleCancel}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <NoteForm
-              initial={editingNote}
-              onSave={handleSave}
-              onCancel={handleCancel}
-            />
+            <NoteForm initial={editingNote} onSave={handleSave} onCancel={handleCancel} />
           </div>
         </div>
       )}

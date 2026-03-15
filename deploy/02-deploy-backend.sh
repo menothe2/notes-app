@@ -11,7 +11,7 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 source "$SCRIPT_DIR/config.env"
 
 # Validate required config
-for var in EC2_PUBLIC_IP EC2_KEY_PATH DB_HOST DB_NAME DB_USER DB_PASSWORD CLOUDFRONT_DOMAIN; do
+for var in EC2_PUBLIC_IP EC2_KEY_PATH DB_HOST DB_NAME DB_USER DB_PASSWORD CLOUDFRONT_DOMAIN JWT_SECRET; do
   if [ -z "${!var:-}" ]; then
     echo "ERROR: $var is not set in config.env"
     exit 1
@@ -42,6 +42,7 @@ DB_NAME=${DB_NAME}
 DB_USER=${DB_USER}
 DB_PASSWORD=${DB_PASSWORD}
 CORS_ALLOWED_ORIGINS=https://${CLOUDFRONT_DOMAIN}
+JWT_SECRET=${JWT_SECRET}
 ENVEOF
   sudo chmod 600 /opt/notes/env
   sudo chown notes:notes /opt/notes/env

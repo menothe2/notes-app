@@ -1,5 +1,6 @@
 package com.notes.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -20,6 +21,11 @@ public class Note {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Priority priority = Priority.MEDIUM;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private User user;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -55,4 +61,7 @@ public class Note {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }
