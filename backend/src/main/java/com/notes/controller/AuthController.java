@@ -7,9 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.security.Principal;
 import java.util.Map;
 
 @RestController
@@ -41,16 +38,6 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("token", jwtUtil.generate(email), "email", email));
-    }
-
-    @GetMapping("/check")
-    public ResponseEntity<?> check(Principal principal) {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        return ResponseEntity.ok(Map.of(
-            "principal", principal != null ? principal.getName() : "null",
-            "authClass", auth != null ? auth.getClass().getSimpleName() : "null",
-            "isAuthenticated", auth != null && auth.isAuthenticated()
-        ));
     }
 
     @PostMapping("/login")
